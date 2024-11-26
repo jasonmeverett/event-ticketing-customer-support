@@ -1,0 +1,165 @@
+
+# TODO: Update this for this example. Deploy adapter, etc.
+
+
+
+
+
+
+
+
+# name: Fine Tuning Studio
+# description: |
+#   This AMP demonstrates how PEFT and other fine-tuning optimization techniques can be used for efficient and effective customization of an existing LLM to perform new tasks.
+# author: Cloudera Inc.
+# specification_version: 1.0
+# prototype_version: 1.0
+# date: "2023-07-22"
+
+# environment_variables:
+#   FINE_TUNING_STUDIO_SQLITE_DB:
+#     default: ".app/state.db"
+#     description: >-
+#       This is the location of the FTS app's SQLite database.
+#   FINE_TUNING_STUDIO_PROJECT_DEFAULTS:
+#     default: "data/project_defaults.json"
+#     description: >-
+#       Project defaults for the app that are populated into the Studio when the AMP is initially deployed.
+#   CUSTOM_LORA_ADAPTERS_DIR:
+#     default: "data/adapters/"
+#     description: >-
+#       The directory containing the reproduced LoRA adapters created by the fine-tuning jobs in this project. Also the location to look for any custom LoRA adapters.
+#   HUGGINGFACE_ACCESS_TOKEN:
+#     default: ""
+#     description: >-
+#       In order to access Huggingface gated models, please create a Huggingface Access Token. Log in to Huggingface -> Settings -> Access Tokens.
+
+# runtimes:
+#   - editor: JupyterLab
+#     kernel: Python 3.11
+#     edition: Nvidia GPU
+
+# tasks:
+#   # - type: run_session
+#   #   name: Validate GPU Availibility in this workspace
+#   #   script: bin/check_gpu_resources.py
+#   #   short_summary: Check for GPU availibility. 
+#   #   long_summary: Check GPUs are enabled on this workspace and are currently schedulable.
+#   #   kernel: python3
+#   #   cpu: 2
+#   #   memory: 4
+
+#   - type: run_session
+#     name: Install Dependencies
+#     script: bin/install-dependencies.py
+#     short_summary: Install Dependencies
+#     kernel: python3
+#     cpu: 4
+#     memory: 16
+  
+#   # - type: run_session
+#   #   name: Validate GPU CUDA Capability
+#   #   script: bin/check_gpu_capability.py
+#   #   short_summary: Check for GPU capability. 
+#   #   long_summary: Check GPU device supports the CUDA capabilities required.
+#   #   kernel: python3
+#   #   cpu: 2
+#   #   memory: 4
+#   #   gpu: 1
+
+#   - type: create_job
+#     name: Accel_Finetuning_Base_Job
+#     short_summary: Create Template Job for creating finetuning tasks
+#     entity_label: accel_fine_tune_job_template
+#     script: ft/scripts/accel_fine_tune_base_script.py
+#     arguments: None
+#     long_summary: Create Template Job for creating accelerator-based finetuning tasks. This job is used as the template for creating and launching fine-tuning tasks in the application.
+#     cpu: 2
+#     memory: 8
+#     gpu: 1
+#     environment:
+#       TASK_TYPE: CREATE/RUN_JOB
+#       MLFLOW_FLATTEN_PARAMS: true
+#       PYTORCH_CUDA_ALLOC_CONF: expandable_segments:True
+
+#   - type: create_job
+#     name: Mlflow_Evaluation_Base_Job
+#     short_summary: Create Template Job for creating mlflow evaluation tasks
+#     entity_label: mlflow_evaluation_job_template
+#     script: ft/scripts/mlflow_evaluation_base_script.py
+#     arguments: None
+#     long_summary: Create Template Job for creating mlflow evaluation tasks. This job is used as the template for creating and launching mlflow evaluation tasks in the application.
+#     cpu: 2
+#     memory: 8
+#     gpu: 1
+#     environment:
+#       TASK_TYPE: CREATE/RUN_JOB
+
+#   - type: run_session
+#     name: Initialize Project Defaults
+#     script: bin/initialize-project-defaults.py
+#     short_summary: Initialize Project Defaults
+#     long_summary: Initialize default datasets, prompts, models, adapters, etc., shipped with this version of the Studio.
+#     kernel: python3
+#     cpu: 2
+#     memory: 8
+  
+#   - type: create_model
+#     name: Ticketing Agent Model
+#     entity_label: ticket_agent_adapter_model
+#     description: This sample model API endpoint is used to generate support ticket intent
+#     short_summary: Create the sample support ticket intent model api endpoint
+#     access_key_environment_variable: TICKETING_MODEL_ACCESS_KEY
+#     default_resources:
+#       cpu: 2
+#       memory: 4
+#       gpu: 1
+#     default_replication_policy:
+#       type: fixed
+#       num_replicas: 1
+
+#   - type: build_model
+#     name: Build Sample Ticketing Agent Adapter Model
+#     short_summary: Build Sample Ticketing Agent Adapter Model
+#     entity_label: ticket_agent_adapter_model
+#     comment: Build Sample Ticketing Agent Adapter Model
+#     examples:
+#       - request:
+#           prompt: "You are an event ticketing customer LLM chatbot responsible for generating a one-word, snake_case action, based on a customer input. Please provide the action below based on the input from the customer.\\n\\n### CUSTOMER: I want to cancel my concert tickets\\n### ACTION:"
+#         response: ""
+#     target_file_path: ft/scripts/cml_model_predict_script.py
+#     target_function_name: api_wrapper
+
+#   - type: deploy_model
+#     name: ticket_agent_adapter_model
+#     short_summary: Deploy Sample Ticketing Agent Adapter Model
+#     entity_label: ticket_agent_adapter_model
+#     cpu: 2
+#     memory: 4
+#     gpu: 1
+#     environment_variables:
+#       FINE_TUNING_STUDIO_BASE_MODEL_HF_NAME: bigscience/bloom-1b1
+#       FINE_TUNING_STUDIO_ADAPTER_LOCATION: data/adapters/bloom-1b-ticketing
+  
+#   - type: start_application
+#     name: Sample-Ticketing-Agent-Application
+#     short_summary: Start Sample Ticketing Agent Application
+#     subdomain: sample-ticketing-agent
+#     script: examples/ticketing-agent-app/ticketing-agent-launch.py
+#     long_summary: This application launcher launches the sample ticketing streamlit application.
+#     cpu: 2
+#     memory: 8
+#     environment_variables:
+#       TASK_TYPE: START_APPLICATION
+
+#   - type: start_application
+#     name: Fine Tuning Studio
+#     short_summary: Start Fine Tuning Studio
+#     subdomain: fine-tuning-studio
+#     script: bin/run-app.py
+#     long_summary: This application requires an available GPU to run the LLM model and LoRA adapters.
+#     cpu: 2
+#     memory: 8
+#     gpu: 1
+#     environment_variables:
+#       TASK_TYPE: START_APPLICATION
